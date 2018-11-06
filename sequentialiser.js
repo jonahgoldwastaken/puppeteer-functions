@@ -35,21 +35,32 @@ function sequentialiser(options) {
     if (nextFunc) runFunc(nextFunc, newCtx)
   }
 
-  function mapFuncsToNamespace(item) {
-    const [func, namespace, namespaceRef] = item
-    func.ns = namespace
-    if (namespaceRef) func.nsRef = namespaceRef
-    registeredFuncs[namespace][func.name] = queueifyFunc(func)
+  function mapFuncsToNamespace(obj) {
+    Object.keys(obj).forEach(ns => {
+      const namespace = obj[ns]
+      const context = namespace.contexts
+      Object.keys(context).forEach(func => {
+        namespace[func].nsRef = context[func]
+      })
+      Object.keys(namespace).forEach(key => {
+        if (key !== 'contexts') {
+          const func = namespace[key]
+          func.ns = ns
+          registeredFuncs[ns][func.name] = queueifyFunc(func)
+        }
+      })
+    })
   }
 
-  function createNameSpaces(item) {
-    const namespace = item[1]
-    if (!registeredFuncs[namespace]) registeredFuncs[namespace] = {}
+  function createNameSpaces(obj) {
+    Object.keys(obj).forEach(ns => {
+      registeredFuncs[ns] = {}
+    })
   }
 
-  return function(funcArray) {
-    funcArray.forEach(createNameSpaces)
-    funcArray.forEach(mapFuncsToNamespace)
+  return function(funcObj) {
+    createNameSpaces(funcObj)
+    mapFuncsToNamespace(funcObj)
     return registeredFuncs[defaultNamespace]
   }
 }
