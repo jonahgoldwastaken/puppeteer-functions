@@ -4,6 +4,7 @@ function sequentialiser(funcObj, options) {
   const queuedFuncs = []
   let isFuncRunning = false
   let firstCtx
+  let currentCtx
 
   function queueifyFunc(func) {
     return function(...args) {
@@ -29,9 +30,11 @@ function sequentialiser(funcObj, options) {
     let parsedFunc
     if (ctx) {
       parsedFunc = func(ctx)
-    } else {
+    } else if (firstCtx) {
       parsedFunc = func(firstCtx)
       firstCtx = null
+    } else {
+      parsedFunc = func(currentCtx)
     }
 
     if (args) parsedFunc(...args).then(funcCallBack)
@@ -42,6 +45,7 @@ function sequentialiser(funcObj, options) {
     removeFuncFromQueue()
     const [nextFunc] = queuedFuncs
     isFuncRunning = false
+    currentCtx = newCtx
     if (nextFunc) runFunc(nextFunc, newCtx)
   }
 

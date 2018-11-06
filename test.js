@@ -1,9 +1,12 @@
 const browser = require('./index')
-browser
-  .launchBrowser(true)
+
+const page = browser
+  .launchBrowser({ devtools: true })
   .launchPage('https://youtube.com')
+
+page
   .click('#thumbnail')
-  .fillInput('#search', 'RTGame')
+  .type('#search', 'RTGame')
   .press('Enter')
   .delay(2000)
   .close()
