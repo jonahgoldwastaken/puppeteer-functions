@@ -1,5 +1,5 @@
-const { currier } = require('../utils')
-const { launchPage, exit } = require('../lib/browser')
+const sequentialiser = require('../sequentialiser')
+const { launchPage, launchBrowser, exit } = require('../lib/browser')
 const {
   navigate,
   goBack,
@@ -17,26 +17,26 @@ const {
   press
 } = require('../lib/page')
 
-const browserModule = browser => ({
-  launchPage: launchPage(browser, pageModule),
-  exit: currier(browser, exit)
-})
+const sequencedModules = sequentialiser({
+  defaultNS: 'puppeteer'
+})([
+  [launchBrowser, 'puppeteer', 'browser'],
+  [launchPage, 'browser', 'page'],
+  [exit, 'browser'],
+  [navigate, 'page'],
+  [goBack, 'page'],
+  [goForward, 'page'],
+  [reload, 'page'],
+  [evaluate, 'page'],
+  [click, 'page'],
+  [selectInput, 'page'],
+  [checkBoxes, 'page'],
+  [checkRadio, 'page'],
+  [fillInput, 'page'],
+  [close, 'page', 'browser'],
+  [awaitNavigation, 'page'],
+  [delay, 'page'],
+  [press, 'page']
+])
 
-const pageModule = page => ({
-  navigate: currier(page, navigate, pageModule),
-  goBack: currier(page, goBack, pageModule),
-  goForward: currier(page, goForward, pageModule),
-  reload: currier(page, reload, pageModule),
-  evaluate: currier(page, evaluate, pageModule),
-  click: currier(page, click, pageModule),
-  selectInput: currier(page, selectInput, pageModule),
-  checkBoxes: currier(page, checkBoxes, pageModule),
-  checkRadio: currier(page, checkRadio, pageModule),
-  fillInput: currier(page, fillInput, pageModule),
-  close: currier(page, close, browserModule(page.browser())),
-  awaitNavigation: currier(page, awaitNavigation, pageModule),
-  delay: currier(page, delay, pageModule),
-  press: currier(page, press, pageModule)
-})
-
-module.exports = { pageModule, browserModule }
+module.exports = sequencedModules
