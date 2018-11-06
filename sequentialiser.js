@@ -1,13 +1,15 @@
-function sequentialiser(options) {
+function sequentialiser(funcObj, options) {
   const defaultNamespace = options.defaultNS
   const registeredFuncs = {}
   const queuedFuncs = []
   let isFuncRunning = false
+  let firstCtx
 
   function queueifyFunc(func) {
     return function(...args) {
       queuedFuncs.push({ func, args })
-      return runFunc(queuedFuncs[queuedFuncs.length - 1])
+      if (!isFuncRunning) runFunc(queuedFuncs[0])
+      return retrieveCtx(func)
     }
   }
 
@@ -15,17 +17,25 @@ function sequentialiser(options) {
     queuedFuncs.splice(0, 1)
   }
 
-  function runFunc({ func, args }, ctx) {
-    if (!isFuncRunning) {
-      isFuncRunning = true
-      let parsedFunc
-      if (ctx) parsedFunc = func(ctx)
-      else parsedFunc = func
-      if (args) parsedFunc(...args).then(funcCallBack)
-      else func().then(funcCallBack)
-    }
+  function retrieveCtx(func) {
     if (func.nsRef) return registeredFuncs[func.nsRef]
     else return registeredFuncs[func.ns]
+  }
+
+  function runFunc({ func, args }, ctx) {
+    if (isFuncRunning) return
+    isFuncRunning = true
+
+    let parsedFunc
+    if (ctx) {
+      parsedFunc = func(ctx)
+    } else {
+      parsedFunc = func(firstCtx)
+      firstCtx = null
+    }
+
+    if (args) parsedFunc(...args).then(funcCallBack)
+    else func().then(funcCallBack)
   }
 
   function funcCallBack(newCtx) {
@@ -58,9 +68,10 @@ function sequentialiser(options) {
     })
   }
 
-  return function(funcObj) {
-    createNameSpaces(funcObj)
-    mapFuncsToNamespace(funcObj)
+  createNameSpaces(funcObj)
+  mapFuncsToNamespace(funcObj)
+  return function(ctx) {
+    firstCtx = ctx
     return registeredFuncs[defaultNamespace]
   }
 }

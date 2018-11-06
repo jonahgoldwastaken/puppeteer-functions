@@ -1,3 +1,4 @@
-const initBrowser = require('./bin/browser')
+const puppeteer = require('puppeteer')
+const browser = require('./bin/browser')
 
-module.exports = initBrowser
+module.exports = browser(puppeteer)
