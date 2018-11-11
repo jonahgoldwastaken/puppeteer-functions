@@ -1,4 +1,5 @@
-const sequentialiser = require('../sequentialiser')
+const puppeteer = require('puppeteer')
+const sequentialiser = require('./sequentialiser')
 const { launchPage, launchBrowser, exit } = require('../lib/browser')
 const page = require('../lib/page')
 
@@ -14,7 +15,8 @@ module.exports = sequentialiser(
       launchPage,
       exit,
       contexts: {
-        launchPage: 'page'
+        launchPage: 'page',
+        exit: 'puppeteer'
       }
     },
     page: {
@@ -24,7 +26,6 @@ module.exports = sequentialiser(
       }
     }
   },
-  {
-    defaultNS: 'puppeteer'
-  }
+  'puppeteer',
+  puppeteer
 )

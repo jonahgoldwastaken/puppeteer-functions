@@ -1,13 +1,14 @@
-const browser = require('./index')
-
-const page = browser
-  .launchBrowser({ devtools: true })
+const puppeteer = require('./index')
+puppeteer
+  .launchBrowser()
   .launchPage('https://youtube.com')
-
-page
-  .click('#thumbnail')
-  .type('#search', 'RTGame')
+  .type('#search', 'funhaus')
   .press('Enter')
-  .delay(2000)
+  .wait(2000)
+  .evaluate(() => document.querySelector('#video-title').textContent)
+  .saveVal()
   .close()
   .exit()
+  .getVals(values => {
+    console.log(values)
+  })
