@@ -6,9 +6,9 @@ puppeteer
   .press('Enter')
   .wait(2000)
   .evaluate(() => document.querySelector('#video-title').textContent)
-  .saveVal()
+  .saveValue()
   .close()
   .exit()
-  .getVals(values => {
-    console.log(values)
+  .getValues(values => {
+    console.log(values[0])
   })

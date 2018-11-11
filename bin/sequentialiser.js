@@ -22,8 +22,8 @@ function sequentialiser(funcObj, defaultNS, ctx) {
   }
 
   function mapValueFunctionsToNamespace(namespace) {
-    namespace.saveVal = saveVal
-    namespace.getVals = getVals
+    namespace.saveValue = saveValue
+    namespace.getValues = getValues
   }
 
   function mapContextReferences(namespace) {
@@ -59,19 +59,13 @@ function sequentialiser(funcObj, defaultNS, ctx) {
   function runFunc({ func, args }, ctx) {
     isFuncRunning = true
     removeFuncFromQueue()
-
-    let parsedFunc
-    if (ctx) parsedFunc = func(ctx)
-    else parsedFunc = func(currentCtx)
-
-    if (args)
-      parsedFunc(...args)
-        .then(funcCallback)
-        .catch(console.log)
-    else
-      parsedFunc()
-        .then(funcCallback)
-        .catch(console.log)
+    if (ctx) {
+      if (args) func(ctx, ...args).then(funcCallback)
+      else func(ctx).then(funcCallback)
+    } else {
+      if (args) func(currentCtx, ...args).then(funcCallback)
+      else func(currentCtx).then(funcCallback)
+    }
   }
 
   function funcCallback([newCtx, valToSave]) {
@@ -79,7 +73,7 @@ function sequentialiser(funcObj, defaultNS, ctx) {
     isFuncRunning = false
     currentCtx = newCtx
     if (nextFunc) {
-      if (nextFunc.func.name === 'saveVal') {
+      if (nextFunc.func.name === 'saveValue') {
         const func = nextFunc.func(
           valToSave.replace(/[\n\r]+|[\s]{2,}/g, ' ').trim()
         )
@@ -90,24 +84,20 @@ function sequentialiser(funcObj, defaultNS, ctx) {
     }
   }
 
-  function saveVal(val) {
-    return function(ctx) {
-      return function() {
-        return new Promise(resolve => {
-          savedValues.push(val)
-          resolve([ctx])
-        })
-      }
-    }
-  }
-
-  function getVals(ctx) {
-    return function(cb) {
+  function saveValue(val) {
+    return function saveValue(ctx) {
       return new Promise(resolve => {
-        cb(savedValues)
+        savedValues.push(val)
         resolve([ctx])
       })
     }
+  }
+
+  function getValues(ctx, cb) {
+    return new Promise(resolve => {
+      cb(savedValues)
+      resolve([ctx])
+    })
   }
 
   function removeFuncFromQueue() {
