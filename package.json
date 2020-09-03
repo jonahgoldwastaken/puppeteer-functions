@@ -9,7 +9,7 @@
   "author": "Jonah Meijers <jonahmeijers97@gmail.com> (https://www.jonahmeijers.nl/)",
   "license": "MIT",
   "dependencies": {
-    "puppeteer": "^1.10.0"
+    "puppeteer": "^1.13.0"
   },
   "devDependencies": {
     "prettier": "^1.14.3"
